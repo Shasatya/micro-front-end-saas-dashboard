@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  CREATOR
+  APPROVER
+  SUPER_APPROVER
+  UPLOADER
+}
+
+enum RequestStatus {
+  PENDING_APPROVER
+  REJECTED_APPROVER
+  PENDING_SUPER_APPROVER
+  REJECTED_SUPER_APPROVER
+  APPROVED
+}
+
+model RoleCounter {
+  role  Role @id
+  count Int  @default(0)
+}
+
+model User {
+  id         String @id @default(uuid())
+  display_id String @unique
+  email      String @unique
+  password   String
+  role       Role
+  tenant_id  String
+
+  collections Collection[]
+  requests    Request[]
+  approvals   ApprovalLog[]
+}
+
+model Collection {
+  id        String @id @default(uuid())
+  name      String
+  tenant_id String
+
+  uploader_id String
+  uploader    User   @relation(fields: [uploader_id], references: [id])
+
+  pdfs     PDF[]
+  requests Request[]
+}
+
+model PDF {
+  id            String     @id @default(uuid())
+  collection_id String
+  collection    Collection @relation(fields: [collection_id], references: [id])
+
+  cloudinary_id String
+  filename      String
+  secure_url    String
+}
+
+model Request {
+  id         String @id @default(uuid())
+  creator_id String
+  creator    User   @relation(fields: [creator_id], references: [id])
+
+  collection_id String
+  collection    Collection @relation(fields: [collection_id], references: [id])
+
+  selected_pdf_ids String[]
+
+  status        RequestStatus @default(PENDING_APPROVER)
+  current_level Int           @default(1)
+
+  logs      ApprovalLog[]
+  createdAt DateTime      @default(now())
+}
+
+model ApprovalLog {
+  id         String  @id @default(uuid())
+  request_id String
+  request    Request @relation(fields: [request_id], references: [id])
+
+  actor_id String
+  actor    User   @relation(fields: [actor_id], references: [id])
+
+  action    String
+  comment   String?
+  timestamp DateTime @default(now())
+}
