@@ -9,31 +9,23 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export const uploadToCloudinary = async (file: any, folder: string) => {
-  const { createReadStream, filename } = await file;
+export const generateSignature = () => {
+  const timestamp = Math.round(new Date().getTime() / 1000);
 
-  return new Promise<{ url: string; public_id: string; format: string }>(
-    (resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        {
-          folder: folder,
-          resource_type: "auto",
-          public_id: filename.split(".")[0],
-        },
-        (error, result) => {
-          if (error || !result) {
-            reject(error);
-          } else {
-            resolve({
-              url: result.secure_url,
-              public_id: result.public_id,
-              format: result.format,
-            });
-          }
-        }
-      );
+  const params = {
+    timestamp: timestamp,
+    folder: "saas_pdfs",
+  };
 
-      createReadStream().pipe(stream);
-    }
+  const signature = cloudinary.utils.api_sign_request(
+    params,
+    process.env.CLOUDINARY_API_SECRET!
   );
+
+  return {
+    timestamp,
+    signature,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+  };
 };
