@@ -1,6 +1,4 @@
-import { PrismaClient, Role } from "@repo/database";
-
-const prisma = new PrismaClient();
+import { prisma, Role } from "@repo/database";
 
 export const generateCustomId = async (role: Role) => {
   const prefixes: Record<Role, string> = {

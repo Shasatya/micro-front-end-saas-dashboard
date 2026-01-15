@@ -1,7 +1,6 @@
-import { PrismaClient, Role } from "@repo/database";
+import { prisma, Role } from "@repo/database";
 import { generateCustomId } from "../utils/idGenerator";
-
-const prisma = new PrismaClient();
+import { generateSignature } from "../utils/cloudinary";
 
 export const resolvers = {
   Query: {
@@ -17,7 +16,6 @@ export const resolvers = {
       }: { email: string; role: string; tenantId: string }
     ) => {
       const userRole = role as Role;
-
       const displayId = await generateCustomId(userRole);
 
       return await prisma.user.create({
@@ -26,7 +24,25 @@ export const resolvers = {
           role: userRole,
           display_id: displayId,
           tenant_id: tenantId,
-          password: "temp_test_password", // TODO: Bcrypt
+          password: "temp_test_password",
+        },
+      });
+    },
+
+    getUploadSignature: () => {
+      return generateSignature();
+    },
+
+    savePdf: async (
+      _: any,
+      { filename, cloudinaryId, secureUrl, collectionId }: any
+    ) => {
+      return await prisma.pDF.create({
+        data: {
+          filename,
+          cloudinary_id: cloudinaryId,
+          secure_url: secureUrl,
+          collection: { connect: { id: collectionId } },
         },
       });
     },
