@@ -19,7 +19,7 @@ export const generateSignature = () => {
 
   const signature = cloudinary.utils.api_sign_request(
     params,
-    process.env.CLOUDINARY_API_SECRET!
+    process.env.CLOUDINARY_API_SECRET!,
   );
 
   return {
@@ -28,4 +28,17 @@ export const generateSignature = () => {
     apiKey: process.env.CLOUDINARY_API_KEY,
     cloudName: process.env.CLOUDINARY_CLOUD_NAME,
   };
+};
+
+export const deleteFromCloudinary = async (publicId: string) => {
+  try {
+    const result = await cloudinary.uploader.destroy(publicId, {
+      resource_type: "raw",
+      invalidate: true,
+    });
+    return result;
+  } catch (error) {
+    console.error("Cloudinary Delete Error:", error);
+    return null;
+  }
 };
