@@ -7,6 +7,12 @@ export const typeDefs = `#graphql
     tenant_id: String
   }
 
+  type Collection {
+    id: ID!
+    name: String!
+    pdfs: [PDF]
+  }
+
   type CloudinarySignature {
     signature: String!
     timestamp: Int!
@@ -22,13 +28,21 @@ export const typeDefs = `#graphql
 
   type Query {
     users: [User]
+
+    myCollections(uploaderId: String!): [Collection] 
   }
 
   type Mutation {
     createUser(email: String!, role: String!, tenantId: String!): User
     
+    createCollection(name: String!, uploaderId: String!, tenantId: String!): Collection
+
     getUploadSignature: CloudinarySignature
     
+    deleteCollection(id: ID!): Collection
+    
+    deletePdf(id: ID!): PDF
+
     savePdf(
       filename: String!, 
       cloudinaryId: String!, 
